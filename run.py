@@ -1,6 +1,7 @@
 import pygame
 from random import randrange
 from operator import add
+from functools import reduce
 
 pygame.init()
 
@@ -15,6 +16,7 @@ circle_white = pygame.image.load("images/circle_white.png")
 tile = pygame.image.load("images/tile.png")
 
 pos_to_pix = lambda x: (x[0] * pixel_unit, x[1] * pixel_unit + top_pad)
+is_valid_cell = lambda x: reduce(lambda accum, unit: accum and unit, map(lambda pos: 0 <= pos < 5, x))
 
 circle_black_pos = (0,0)
 circle_white_pos = (n_tiles - 1, n_tiles - 1)
@@ -61,11 +63,19 @@ while not done:
         continue
 
       if "black" == playing_side:
-        circle_black_pos = tuple(map(add,circle_black_pos, reagent))
+        new_circle_black_pos = tuple(map(add, circle_black_pos, reagent))
+        if not is_valid_cell(new_circle_black_pos):
+          print("Invalid move")
+          break
+        circle_black_pos = new_circle_black_pos
         circle_black_pix = pos_to_pix(circle_black_pos)
         playing_side = "white"
       else:
-        circle_white_pos = tuple(map(add,circle_white_pos, reagent))
+        new_circle_white_pos = tuple(map(add, circle_white_pos, reagent))
+        if not is_valid_cell(new_circle_white_pos):
+          print("Invalid move")
+          break
+        circle_white_pos = new_circle_white_pos
         circle_white_pix = pos_to_pix(circle_white_pos)
         playing_side = "black"
 
