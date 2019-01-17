@@ -1,5 +1,6 @@
 import pygame
 from random import randrange
+from operator import add
 
 pygame.init()
 
@@ -13,8 +14,14 @@ circle_black = pygame.image.load("images/circle_black.png")
 circle_white = pygame.image.load("images/circle_white.png")
 tile = pygame.image.load("images/tile.png")
 
-circle_black_pos = (0,0 + top_pad)
-circle_white_pos = (pixel_unit * (n_tiles - 1), pixel_unit * (n_tiles - 1) + top_pad)
+pos_to_pix = lambda x: (x[0] * pixel_unit, x[1] * pixel_unit + top_pad)
+
+circle_black_pos = (0,0)
+circle_white_pos = (n_tiles - 1, n_tiles - 1)
+
+circle_black_pix = pos_to_pix(circle_black_pos)
+circle_white_pix = pos_to_pix(circle_white_pos)
+
 tile_array_pos = []
 for i in range(0, n_tiles):
   for j in range(0, n_tiles):
@@ -28,20 +35,43 @@ font = pygame.font.SysFont(choosen_font, font_size)
 done = False
 playing_side = "black"
 while not done:
+  screen.fill((0,0,255)) # add background to next screen
+
   for position in tile_array_pos: # draw tile to next screen
     screen.blit(tile, position)
-
-  screen.fill((0,0,255)) # add background to next screen
 
   playing_text = "{} turn".format(playing_side)
   screen.blit(font.render(playing_text, True, (255,255,255)), (0,0))
 
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
-      pygame.quit()
       done = True
-  screen.blit(circle_black, circle_black_pos) # draw black circle to next screen
-  screen.blit(circle_white, circle_white_pos) # draw white circle to next screen
+    elif event.type == pygame.KEYDOWN:
+      pressed_key = pygame.key.get_pressed()
+      reagent = None
+      if pressed_key[pygame.K_UP]:
+        reagent = (0, -1)
+      elif pressed_key[pygame.K_DOWN]:
+        reagent = (0, 1)
+      elif pressed_key[pygame.K_LEFT]:
+        reagent = (-1, 0)
+      elif pressed_key[pygame.K_RIGHT]:
+        reagent = (1, 0)
+      else:
+        continue
+
+      if "black" == playing_side:
+        circle_black_pos = tuple(map(add,circle_black_pos, reagent))
+        circle_black_pix = pos_to_pix(circle_black_pos)
+        playing_side = "white"
+      else:
+        circle_white_pos = tuple(map(add,circle_white_pos, reagent))
+        circle_white_pix = pos_to_pix(circle_white_pos)
+        playing_side = "black"
+
+  screen.blit(circle_black, circle_black_pix) # draw black circle to next screen
+  screen.blit(circle_white, circle_white_pix) # draw white circle to next screen
   # rendering things with flip
   pygame.display.flip()
 
+pygame.quit()
